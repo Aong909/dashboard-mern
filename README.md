@@ -1,1 +1,1 @@
-web app [a dashboard](https://dashboard-mern2.netlify.app)
+web app [dashboard](https://dashboard-mern2.netlify.app)
