@@ -1,3 +1,4 @@
+import PropertyModel from "../model/property.js";
 import UserModel from "../model/user.js";
 
 const getAllUser = async (req, res) => {
@@ -14,15 +15,19 @@ const getAllUser = async (req, res) => {
 const createUser = async (req, res) => {
   try {
     const { name, email, avatar } = req.body;
-    console.log(email);
 
     const userExits = await UserModel.findOne({ email });
 
     if (userExits) {
+      // const properties = await PropertyModel.find({creator._id :  });
       return res.status(200).json(userExits);
     }
 
-    const newUser = await UserModel.create({ name, email, avatar });
+    const newUser = await UserModel.create({
+      name,
+      email,
+      avatar,
+    });
     return res.status(200).json(newUser);
   } catch (error) {
     console.log(error);
@@ -33,7 +38,7 @@ const createUser = async (req, res) => {
 const getUserInfoByID = async (req, res) => {
   try {
     const { id } = req.params;
-    const user = await UserModel.findOne({ _id: id });
+    const user = await UserModel.findOne({ _id: id }).populate("allProperties");
     if (user) {
       res.status(200).json(user);
     } else {

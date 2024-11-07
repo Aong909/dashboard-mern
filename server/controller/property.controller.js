@@ -14,25 +14,24 @@ cloudinary.config({
 });
 
 const getAllProperties = async (req, res) => {
-  const {
-    _end,
-    _order,
-    _start,
-    _sort,
-    title_like = "",
-    propertyType = "",
-  } = req.query;
-
-  const query = {};
-
-  if (title_like !== "") {
-    query.title = { $regex: title_like, $option: "i" };
-  }
-  if (propertyType !== "") {
-    query.propertyType = propertyType;
-  }
-
   try {
+    const {
+      _end,
+      _order,
+      _start,
+      _sort,
+      title_like = "",
+      propertyType = "",
+    } = req.query;
+
+    const query = {};
+
+    if (title_like !== "") {
+      query.title = { $regex: title_like, $options: "i" };
+    }
+    if (propertyType !== "") {
+      query.propertyType = propertyType;
+    }
     const count = await PropertyModel.countDocuments({ query });
     const properties = await PropertyModel.find(query)
       .limit(_end)
@@ -73,7 +72,7 @@ const createProperty = async (req, res) => {
     const user = await UserModel.findOne({ email }).session(session);
     if (!user) throw new Error("User not found");
     const photoUrl = await cloudinary.uploader.upload(photo);
-    console.log(user);
+
     const newProperty = await PropertyModel.create({
       title,
       description,
@@ -84,8 +83,7 @@ const createProperty = async (req, res) => {
       creator: user._id,
     });
 
-    // user.allProperties.push(newProperty._id);
-
+    user.allProperties.push(newProperty._id);
     await user.save({ session });
     await session.commitTransaction();
 
@@ -98,25 +96,24 @@ const createProperty = async (req, res) => {
 
 const updateProperty = async (req, res) => {
   try {
-    console.log("UpdateProperty");
-    // const { id } = req.params;
-    // const { title, description, propertyType, location, price, photo, email } =
-    //   req.body;
-    // const photoUrl = await cloudinary.uploader.upload(photo);
+    const { id } = req.params;
+    const { title, description, propertyType, location, price, photo, email } =
+      req.body;
+    const photoUrl = await cloudinary.uploader.upload(photo);
 
-    // await PropertyModel.findByIdAndUpdate(
-    //   { _id: id },
-    //   {
-    //     title,
-    //     description,
-    //     propertyType,
-    //     location,
-    //     price,
-    //     photo: photoUrl.url || photo,
-    //   }
-    // );
+    await PropertyModel.findByIdAndUpdate(
+      { _id: id },
+      {
+        title,
+        description,
+        propertyType,
+        location,
+        price,
+        photo: photoUrl.url || photo,
+      }
+    );
 
-    res.status(200).json({ message: "Property created successfully" });
+    res.status(200).json({ message: "Property updated successfully" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: error.message });

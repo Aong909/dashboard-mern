@@ -12,45 +12,36 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT | 8080;
 
-// app.use(
-//   cors({
-//     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-//   })
-// );
+app.options("*", cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
-// app.options("*", cors);
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Methods",
+    "PUT, GET, PATCH, POST, DELETE,OPTIONS"
+  );
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
 
-// app.options("*", cors());
+  next();
+});
 
-// app.use(
-//   cors({
-//     origin: "http://localhost:5173",
-//     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-//   })
-// );
-
-// app.use((req, res, next) => {
-//   res.setHeader("Access-Control-Allow-Origin", "*");
-//   res.header("Access-Control-Allow-Origin", "*");
-//   res.header("Access-Control-Allow-Methods", "PUT, GET, PATCH, POST, DELETE");
-//   res.header(
-//     "Access-Control-Allow-Headers",
-//     "Origin, X-Requested-With, Content-Type, Accept"
-//   );
-//   next();
-// });
-
-///////////////////////////////////////
-// test resolve by copilot
-// CORS configuration
-const corsOptions = {
-  origin: "*", // Adjust this according to your needs
-  methods: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"], // Adjust headers as needed
-};
-app.use(cors(corsOptions));
-app.use(express.json());
-///////////////////////////////////////
+app.options("*", (req, res, next) => {
+  console.log(req.url);
+  console.log(req.method);
+  console.log(req.headers);
+  next();
+});
 
 app.use(morgan("dev"));
 app.use(express.json({ limit: "50mb" }));
@@ -59,26 +50,13 @@ app
   .get("/", (req, res) => {
     res.send("Hello GET API");
   })
-  .post("/", (req, res) => {
-    res.send("Hello POST API");
+  .patch("/", (req, res) => {
+    res.send("Hello PATCH API");
   });
 
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/properties", propertyRouter);
 
-///////////////////////////////
-//test resolve by copilot
-app.options("*", (req, res) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header(
-    "Access-Control-Allow-Methods",
-    "GET,PUT,POST,PATCH,DELETE,OPTIONS"
-  );
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.sendStatus(204); // Or 204
-});
-
-///////////////////////////////
 const startServer = async () => {
   try {
     connectDB(process.env.MONGO_URL);
